@@ -13,21 +13,13 @@ import {
   ProducerWorkerPort,
 } from './producer-client.service';
 
-class FakeProducerWorker
-  implements ProducerWorkerPort
-{
-  onmessage:
-    | ((
-        event: MessageEvent<ProducerWorkerEvent>,
-      ) => void)
-    | null = null;
+class FakeProducerWorker implements ProducerWorkerPort {
+  onmessage: ((event: MessageEvent<ProducerWorkerEvent>) => void) | null = null;
 
   readonly messages: ProducerWorkerCommand[] = [];
   terminated = false;
 
-  postMessage(
-    message: ProducerWorkerCommand,
-  ): void {
+  postMessage(message: ProducerWorkerCommand): void {
     this.messages.push(message);
   }
 
@@ -47,6 +39,7 @@ describe('ProducerClientService', () => {
   let service: ProducerClientService;
 
   beforeEach(() => {
+    localStorage.clear();
     worker = new FakeProducerWorker();
 
     TestBed.configureTestingModule({
@@ -59,9 +52,7 @@ describe('ProducerClientService', () => {
       ],
     });
 
-    service = TestBed.inject(
-      ProducerClientService,
-    );
+    service = TestBed.inject(ProducerClientService);
   });
 
   it('starts one run with default settings', () => {
@@ -73,13 +64,45 @@ describe('ProducerClientService', () => {
       },
     ]);
 
-    expect(service.status()).toBe(
-      'initializing',
+    expect(service.status()).toBe('initializing');
+
+    expect(service.settings()).toEqual(DEFAULT_PRODUCER_SETTINGS);
+  });
+
+  it('applies settings changed in another tab', () => {
+    const settings: ProducerSettings = {
+      instrumentCount: 8,
+      updatesPerBatch: 400,
+      batchIntervalMs: 150,
+    };
+
+    window.dispatchEvent(
+      new StorageEvent('storage', {
+        key: 'realtime-fintech-dashboard.producer-settings',
+        newValue: JSON.stringify(settings),
+      }),
     );
 
-    expect(service.settings()).toEqual(
-      DEFAULT_PRODUCER_SETTINGS,
-    );
+    expect(service.settings()).toEqual(settings);
+    expect(worker.messages.at(-1)).toEqual({
+      type: 'start',
+      runId: 2,
+      settings,
+    });
+  });
+
+  it('stores applied settings for other tabs', () => {
+    const settings: ProducerSettings = {
+      instrumentCount: 6,
+      updatesPerBatch: 200,
+      batchIntervalMs: 300,
+    };
+
+    service.apply(settings);
+
+    expect(
+      JSON.parse(localStorage.getItem('realtime-fintech-dashboard.producer-settings') ?? ''),
+    ).toEqual(settings);
   });
 
   it('clears previous values when settings are applied', () => {
@@ -110,9 +133,7 @@ describe('ProducerClientService', () => {
 
     expect(service.metrics()).toEqual([]);
     expect(service.error()).toBeNull();
-    expect(service.status()).toBe(
-      'initializing',
-    );
+    expect(service.status()).toBe('initializing');
 
     expect(worker.messages.at(-1)).toEqual({
       type: 'start',
@@ -179,9 +200,7 @@ describe('ProducerClientService', () => {
       batchIntervalMs: 100,
     });
 
-    expect(service.status()).toBe(
-      'initializing',
-    );
+    expect(service.status()).toBe('initializing');
 
     worker.emit({
       type: 'snapshot',
@@ -206,9 +225,7 @@ describe('ProducerClientService', () => {
 
     expect(service.metrics()).toEqual([]);
     expect(service.error()).toBeNull();
-    expect(service.status()).toBe(
-      'initializing',
-    );
+    expect(service.status()).toBe('initializing');
   });
 
   it('accepts results from the active run', () => {
@@ -241,9 +258,7 @@ describe('ProducerClientService', () => {
 
     expect(service.status()).toBe('running');
     expect(service.metrics()).toHaveLength(1);
-    expect(
-      service.metrics()[0].instrument,
-    ).toBe('ALFA');
+    expect(service.metrics()[0].instrument).toBe('ALFA');
   });
 
   it('terminates its worker when destroyed', () => {

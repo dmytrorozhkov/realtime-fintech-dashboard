@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import {
-  generateBatch,
-  initialize,
-  updateFieldCount,
-} from '../public/wasm/producer.js';
+import { generateBatch, initialize, updateFieldCount } from '../public/wasm/producer.js';
 
 const INSTRUMENT_INDEX = 0;
 const PRICE_CENTS = 1;
@@ -22,10 +18,7 @@ describe('AssemblyScript market producer', () => {
     for (const batchSize of [1, 100, 1_000]) {
       const batch = generateBatch(batchSize);
 
-      assert.equal(
-        batch.length,
-        batchSize * updateFieldCount(),
-      );
+      assert.equal(batch.length, batchSize * updateFieldCount());
     }
   });
 
@@ -37,31 +30,20 @@ describe('AssemblyScript market producer', () => {
     const batch = generateBatch(1_000);
     const fieldCount = updateFieldCount();
 
-    for (
-      let offset = 0;
-      offset < batch.length;
-      offset += fieldCount
-    ) {
-      const instrumentIndex =
-        batch[offset + INSTRUMENT_INDEX];
+    for (let offset = 0; offset < batch.length; offset += fieldCount) {
+      const instrumentIndex = batch[offset + INSTRUMENT_INDEX];
 
-      const priceCents =
-        batch[offset + PRICE_CENTS];
+      const priceCents = batch[offset + PRICE_CENTS];
 
-      const tradeQuantity =
-        batch[offset + TRADE_QUANTITY];
+      const tradeQuantity = batch[offset + TRADE_QUANTITY];
 
-      const bidCents =
-        batch[offset + BID_CENTS];
+      const bidCents = batch[offset + BID_CENTS];
 
-      const askCents =
-        batch[offset + ASK_CENTS];
+      const askCents = batch[offset + ASK_CENTS];
 
-      const bidQuantity =
-        batch[offset + BID_QUANTITY];
+      const bidQuantity = batch[offset + BID_QUANTITY];
 
-      const askQuantity =
-        batch[offset + ASK_QUANTITY];
+      const askQuantity = batch[offset + ASK_QUANTITY];
 
       assert.ok(instrumentIndex >= 0);
       assert.ok(instrumentIndex < numberOfInstruments);
@@ -72,10 +54,7 @@ describe('AssemblyScript market producer', () => {
       assert.ok(bidCents > 0);
       assert.ok(bidCents < askCents);
 
-      assert.ok(
-        priceCents === bidCents ||
-          priceCents === askCents,
-      );
+      assert.ok(priceCents === bidCents || priceCents === askCents);
 
       assert.ok(bidQuantity >= 0);
       assert.ok(askQuantity >= 0);
@@ -92,6 +71,26 @@ describe('AssemblyScript market producer', () => {
     assert.deepEqual(second, first);
   });
 
+  it('does not assign prices in instrument order', () => {
+    const instrumentCount = 20;
+
+    initialize(instrumentCount, 2468);
+
+    const batch = generateBatch(1_000);
+    const fieldCount = updateFieldCount();
+    const prices = new Array(instrumentCount);
+
+    for (let offset = 0; offset < batch.length; offset += fieldCount) {
+      prices[batch[offset + INSTRUMENT_INDEX]] = batch[offset + PRICE_CENTS];
+    }
+
+    assert.equal(prices.every(Number.isInteger), true);
+    assert.equal(
+      prices.some((price, index) => index > 0 && price < prices[index - 1]),
+      true,
+    );
+  });
+
   it('retains generator state between calls', () => {
     initialize(3, 987);
 
@@ -102,10 +101,7 @@ describe('AssemblyScript market producer', () => {
 
     const combinedBatch = Array.from(generateBatch(25));
 
-    assert.deepEqual(
-      [...firstBatch, ...secondBatch],
-      combinedBatch,
-    );
+    assert.deepEqual([...firstBatch, ...secondBatch], combinedBatch);
   });
 
   it('evolves prices from their previous values', () => {
@@ -114,26 +110,24 @@ describe('AssemblyScript market producer', () => {
     const batch = generateBatch(100);
     const fieldCount = updateFieldCount();
 
-    let previousPrice = 10_000;
+    let previousPrice = batch[PRICE_CENTS];
+    let increased = false;
+    let decreased = false;
 
-    for (
-      let offset = 0;
-      offset < batch.length;
-      offset += fieldCount
-    ) {
-      const currentPrice =
-        batch[offset + PRICE_CENTS];
+    for (let offset = fieldCount; offset < batch.length; offset += fieldCount) {
+      const currentPrice = batch[offset + PRICE_CENTS];
 
-      /*
-       * The reference price moves by at most 5 cents, the bid offset
-       * is at most 4 cents, and the spread is at most 10 cents.
-       */
-      assert.ok(
-        Math.abs(currentPrice - previousPrice) <= 15,
-      );
+      assert.ok(Math.abs(currentPrice - previousPrice) >= 1);
+      assert.ok(Math.abs(currentPrice - previousPrice) <= 5);
+
+      increased ||= currentPrice > previousPrice;
+      decreased ||= currentPrice < previousPrice;
 
       previousPrice = currentPrice;
     }
+
+    assert.equal(increased, true);
+    assert.equal(decreased, true);
   });
 
   it('resets state when initialized again', () => {

@@ -7,8 +7,8 @@ const MIN_BATCH_SIZE: i32 = 1;
 const MAX_BATCH_SIZE: i32 = 1_000;
 
 const MIN_PRICE_CENTS: i32 = 100;
-const INITIAL_PRICE_CENTS: i32 = 10_000;
-const INITIAL_PRICE_STEP_CENTS: i32 = 500;
+const MIN_INITIAL_PRICE_CENTS: i32 = 5_000;
+const MAX_INITIAL_PRICE_CENTS: i32 = 20_000;
 
 let instrumentCount: i32 = 0;
 let randomState: u32 = 1;
@@ -31,13 +31,8 @@ function nextRandom(): u32 {
   return value;
 }
 
-function randomInteger(
-  minimumInclusive: i32,
-  maximumInclusive: i32,
-): i32 {
-  const range = <u32>(
-    maximumInclusive - minimumInclusive + 1
-  );
+function randomInteger(minimumInclusive: i32, maximumInclusive: i32): i32 {
+  const range = <u32>(maximumInclusive - minimumInclusive + 1);
 
   return minimumInclusive + <i32>(nextRandom() % range);
 }
@@ -47,13 +42,9 @@ function randomInteger(
  *
  * Calling initialize again clears the previous run state.
  */
-export function initialize(
-  newInstrumentCount: i32,
-  seed: u32,
-): void {
+export function initialize(newInstrumentCount: i32, seed: u32): void {
   assert(
-    newInstrumentCount >= MIN_INSTRUMENT_COUNT &&
-      newInstrumentCount <= MAX_INSTRUMENT_COUNT,
+    newInstrumentCount >= MIN_INSTRUMENT_COUNT && newInstrumentCount <= MAX_INSTRUMENT_COUNT,
     'Instrument count must be between 1 and 50',
   );
 
@@ -65,9 +56,7 @@ export function initialize(
   prices = new Int32Array(instrumentCount);
 
   for (let index: i32 = 0; index < instrumentCount; index++) {
-    prices[index] =
-      INITIAL_PRICE_CENTS +
-      index * INITIAL_PRICE_STEP_CENTS;
+    prices[index] = randomInteger(MIN_INITIAL_PRICE_CENTS, MAX_INITIAL_PRICE_CENTS);
   }
 }
 
@@ -81,63 +70,37 @@ export function updateFieldCount(): i32 {
 /**
  * Generates the requested number of market updates.
  */
-export function generateBatch(
-  updateCount: i32,
-): Int32Array {
-  assert(
-    instrumentCount > 0,
-    'Producer must be initialized before generating data',
-  );
+export function generateBatch(updateCount: i32): Int32Array {
+  assert(instrumentCount > 0, 'Producer must be initialized before generating data');
 
   assert(
-    updateCount >= MIN_BATCH_SIZE &&
-      updateCount <= MAX_BATCH_SIZE,
+    updateCount >= MIN_BATCH_SIZE && updateCount <= MAX_BATCH_SIZE,
     'Batch size must be between 1 and 1000',
   );
 
-  const result = new Int32Array(
-    updateCount * UPDATE_FIELD_COUNT,
-  );
+  const result = new Int32Array(updateCount * UPDATE_FIELD_COUNT);
 
   let outputIndex: i32 = 0;
 
-  for (
-    let updateIndex: i32 = 0;
-    updateIndex < updateCount;
-    updateIndex++
-  ) {
-    const instrumentIndex = randomInteger(
-      0,
-      instrumentCount - 1,
-    );
+  for (let updateIndex: i32 = 0; updateIndex < updateCount; updateIndex++) {
+    const instrumentIndex = randomInteger(0, instrumentCount - 1);
 
     const previousPrice = prices[instrumentIndex];
 
-    // Evolve the price from its previous value.
-    const priceMovement = randomInteger(-5, 5);
+    // Move every trade up or down without an upward bias.
+    const movement = randomInteger(1, 5);
+    const direction = randomInteger(0, 1) == 0 ? -1 : 1;
 
-    let referencePrice = previousPrice + priceMovement;
+    let priceCents = previousPrice + direction * movement;
 
-    if (referencePrice < MIN_PRICE_CENTS) {
-      referencePrice = MIN_PRICE_CENTS;
+    if (priceCents < MIN_PRICE_CENTS) {
+      priceCents = previousPrice + movement;
     }
 
-    const bidOffset = randomInteger(0, 4);
     const spread = randomInteger(1, 10);
-
-    let bidCents = referencePrice - bidOffset;
-
-    if (bidCents < 1) {
-      bidCents = 1;
-    }
-
-    const askCents = bidCents + spread;
-
-    // The trade must execute at either the bid or the ask.
-    const priceCents =
-      randomInteger(0, 1) == 0
-        ? bidCents
-        : askCents;
+    const tradeAtBid = randomInteger(0, 1) == 0;
+    const bidCents = tradeAtBid ? priceCents : priceCents - spread;
+    const askCents = tradeAtBid ? priceCents + spread : priceCents;
 
     const tradeQuantity = randomInteger(1, 100);
     const bidQuantity = randomInteger(0, 1_000);

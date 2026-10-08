@@ -1,31 +1,18 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
-import {
-  CentsCurrencyPipe,
-  ImbalancePipe,
-} from '../../../market/formatters/market-value.pipes';
+import { CentsCurrencyPipe, ImbalancePipe } from '../../../market/formatters/market-value.pipes';
 import { ProducerClientService } from '../../../market/producer-client.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [
-    DecimalPipe,
-    CentsCurrencyPipe,
-    ImbalancePipe,
-  ],
+  imports: [DecimalPipe, CentsCurrencyPipe, ImbalancePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Dashboard {
-  protected readonly producer =
-    inject(ProducerClientService);
+  protected readonly producer = inject(ProducerClientService);
 
   protected readonly statusLabel = computed(() => {
     switch (this.producer.status()) {
@@ -53,8 +40,6 @@ export class Dashboard {
   });
 
   protected retry(): void {
-    this.producer.apply(
-      this.producer.settings(),
-    );
+    this.producer.apply(this.producer.settings());
   }
 }

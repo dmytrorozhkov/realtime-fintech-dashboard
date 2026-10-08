@@ -1,14 +1,8 @@
-import {
-  ProducerTimer,
-  ProducerTimerDriver,
-} from './producer-timer';
+import { ProducerTimer, ProducerTimerDriver } from './producer-timer';
 
 class FakeTimerDriver implements ProducerTimerDriver {
   private nextTimerId = 1;
-  private readonly callbacks = new Map<
-    number,
-    () => void
-  >();
+  private readonly callbacks = new Map<number, () => void>();
 
   set(callback: () => void): number {
     const timerId = this.nextTimerId++;

@@ -4,7 +4,7 @@ A small Angular application that displays live simulated market data generated b
 
 ## Links
 
-- Repository: https://github.com/dimka388/realtime-fintech-dashboard
+- Repository: https://github.com/dmytrorozhkov/realtime-fintech-dashboard
 - Live demo: https://realtime-fintech-dashboard.pages.dev/
 
 ## Features
@@ -31,6 +31,7 @@ A small Angular application that displays live simulated market data generated b
 - Web Worker
 - Angular signals
 - Reactive Forms
+- ESLint
 - Vitest
 - Node.js test runner
 
@@ -68,15 +69,15 @@ The worker is owned by a root Angular service, so navigation does not create add
 
 The Wasm producer returns a flat `Int32Array`. Each market update contains seven values:
 
-| Index | Value |
-|---:|---|
-| 0 | Instrument index |
-| 1 | Trade price in cents |
-| 2 | Trade quantity |
-| 3 | Bid price in cents |
-| 4 | Ask price in cents |
-| 5 | Bid quantity |
-| 6 | Ask quantity |
+| Index | Value                |
+| ----: | -------------------- |
+|     0 | Instrument index     |
+|     1 | Trade price in cents |
+|     2 | Trade quantity       |
+|     3 | Bid price in cents   |
+|     4 | Ask price in cents   |
+|     5 | Bid quantity         |
+|     6 | Ask quantity         |
 
 A flat numeric format avoids JSON serialization inside Wasm.
 
@@ -126,17 +127,17 @@ A metric is unavailable when its denominator is zero.
 
 ## Producer settings
 
-| Setting | Default | Range |
-|---|---:|---:|
-| Instrument count | 5 | 1-50 |
-| Updates per batch | 100 | 1-1,000 |
-| Batch interval | 500 ms | 50-2,000 ms |
+| Setting           | Default |       Range |
+| ----------------- | ------: | ----------: |
+| Instrument count  |       5 |        1-50 |
+| Updates per batch |     100 |     1-1,000 |
+| Batch interval    |  500 ms | 50-2,000 ms |
 
 All settings must be integers.
 
 Editing the form does not change the active producer. Apply starts a new run, clears the old metrics, and resumes generation if the previous run was paused.
 
-Settings are stored in memory only. Reloading the page resets the form and starts the producer with the default values listed above.
+Applied settings are stored in local storage and synchronized across open app tabs. A newly opened or reloaded tab starts its producer with the most recently applied settings.
 
 ## Performance
 
@@ -203,6 +204,20 @@ npm run test:generator
 ```
 
 The generator tests execute the compiled WebAssembly module with deterministic seeds and do not depend on real-time delays.
+
+## Code quality
+
+Check TypeScript, JavaScript, Angular components, and templates:
+
+```bash
+npm run lint
+```
+
+Apply safe automatic fixes:
+
+```bash
+npm run lint:fix
+```
 
 ## Production build
 

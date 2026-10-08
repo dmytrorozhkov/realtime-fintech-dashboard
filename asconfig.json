@@ -3,7 +3,7 @@
     "debug": {
       "outFile": "public/wasm/producer.wasm",
       "textFile": "build/producer.debug.wat",
-      "sourceMap": true,
+      "sourceMap": false,
       "debug": true
     },
     "release": {

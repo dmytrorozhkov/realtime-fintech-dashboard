@@ -15,13 +15,10 @@ export function decodeMarketBatch(
   instruments: readonly string[],
 ): MarketUpdate[] {
   if (batch.length % MARKET_UPDATE_FIELD_COUNT !== 0) {
-    throw new Error(
-      `Invalid market batch length: ${batch.length}`,
-    );
+    throw new Error(`Invalid market batch length: ${batch.length}`);
   }
 
-  const updateCount =
-    batch.length / MARKET_UPDATE_FIELD_COUNT;
+  const updateCount = batch.length / MARKET_UPDATE_FIELD_COUNT;
 
   const updates = new Array<MarketUpdate>(updateCount);
 
@@ -30,15 +27,12 @@ export function decodeMarketBatch(
     offset < batch.length;
     offset += MARKET_UPDATE_FIELD_COUNT, updateIndex++
   ) {
-    const instrumentIndex =
-      batch[offset + INSTRUMENT_INDEX];
+    const instrumentIndex = batch[offset + INSTRUMENT_INDEX];
 
     const instrument = instruments[instrumentIndex];
 
     if (instrument === undefined) {
-      throw new Error(
-        `Invalid instrument index: ${instrumentIndex}`,
-      );
+      throw new Error(`Invalid instrument index: ${instrumentIndex}`);
     }
 
     updates[updateIndex] = {

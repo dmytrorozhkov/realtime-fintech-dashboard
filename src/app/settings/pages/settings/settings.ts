@@ -1,66 +1,44 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ProducerClientService } from '../../../market/producer-client.service';
 import { integerValidator } from '../../integer.validator';
 
 @Component({
   selector: 'app-settings',
-  imports: [
-    DecimalPipe,
-    ReactiveFormsModule,
-  ],
+  imports: [DecimalPipe, ReactiveFormsModule],
   templateUrl: './settings.html',
   styleUrl: './settings.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Settings {
-  private readonly formBuilder =
-    inject(FormBuilder);
+  private readonly formBuilder = inject(FormBuilder);
 
-  protected readonly producer =
-    inject(ProducerClientService);
+  protected readonly producer = inject(ProducerClientService);
 
   readonly form = this.formBuilder.nonNullable.group({
     instrumentCount: [
       this.producer.settings().instrumentCount,
-      [
-        Validators.required,
-        integerValidator,
-        Validators.min(1),
-        Validators.max(50),
-      ],
+      [Validators.required, integerValidator, Validators.min(1), Validators.max(50)],
     ],
 
     updatesPerBatch: [
       this.producer.settings().updatesPerBatch,
-      [
-        Validators.required,
-        integerValidator,
-        Validators.min(1),
-        Validators.max(1_000),
-      ],
+      [Validators.required, integerValidator, Validators.min(1), Validators.max(1_000)],
     ],
 
     batchIntervalMs: [
       this.producer.settings().batchIntervalMs,
-      [
-        Validators.required,
-        integerValidator,
-        Validators.min(50),
-        Validators.max(2_000),
-      ],
+      [Validators.required, integerValidator, Validators.min(50), Validators.max(2_000)],
     ],
   });
+
+  constructor() {
+    effect(() => {
+      this.form.reset(this.producer.settings());
+    });
+  }
 
   protected applySettings(): void {
     this.form.markAllAsTouched();
@@ -69,18 +47,13 @@ export class Settings {
       return;
     }
 
-    this.producer.apply(
-      this.form.getRawValue(),
-    );
+    this.producer.apply(this.form.getRawValue());
 
     this.form.markAsPristine();
   }
 
   protected nominalUpdateRate(): number | null {
-    const {
-      updatesPerBatch,
-      batchIntervalMs,
-    } = this.form.getRawValue();
+    const { updatesPerBatch, batchIntervalMs } = this.form.getRawValue();
 
     if (
       !Number.isInteger(updatesPerBatch) ||
@@ -91,9 +64,6 @@ export class Settings {
       return null;
     }
 
-    return (
-      updatesPerBatch *
-      (1_000 / batchIntervalMs)
-    );
+    return updatesPerBatch * (1_000 / batchIntervalMs);
   }
 }

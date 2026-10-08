@@ -1,9 +1,7 @@
 import { MarketUpdate } from '../models/market.models';
 import { MarketMetricsAggregator } from './market-metrics';
 
-function createUpdate(
-  overrides: Partial<MarketUpdate> = {},
-): MarketUpdate {
+function createUpdate(overrides: Partial<MarketUpdate> = {}): MarketUpdate {
   return {
     instrument: 'ALFA',
     priceCents: 10_000,
@@ -83,10 +81,7 @@ describe('MarketMetricsAggregator', () => {
   });
 
   it('keeps instruments isolated from each other', () => {
-    const aggregator = new MarketMetricsAggregator([
-      'ALFA',
-      'BETA',
-    ]);
+    const aggregator = new MarketMetricsAggregator(['ALFA', 'BETA']);
 
     aggregator.process(
       createUpdate({
@@ -144,9 +139,7 @@ describe('MarketMetricsAggregator', () => {
           instrument: 'UNKNOWN',
         }),
       );
-    }).toThrowError(
-      'Received update for unknown instrument: UNKNOWN',
-    );
+    }).toThrowError('Received update for unknown instrument: UNKNOWN');
   });
 
   it('clears previous values when reset is called', () => {

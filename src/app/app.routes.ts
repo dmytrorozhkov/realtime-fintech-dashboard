@@ -4,16 +4,12 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () =>
-      import('./dashboard/pages/dashboard/dashboard').then(
-        (module) => module.Dashboard,
-      ),
+      import('./dashboard/pages/dashboard/dashboard').then((module) => module.Dashboard),
   },
   {
     path: 'settings',
     loadComponent: () =>
-      import('./settings/pages/settings/settings').then(
-        (module) => module.Settings,
-      ),
+      import('./settings/pages/settings/settings').then((module) => module.Settings),
   },
   {
     path: '',

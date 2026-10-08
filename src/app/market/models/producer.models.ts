@@ -12,12 +12,7 @@ export const DEFAULT_PRODUCER_SETTINGS: ProducerSettings = {
   batchIntervalMs: 500,
 };
 
-export type ProducerStatus =
-  | 'idle'
-  | 'initializing'
-  | 'running'
-  | 'paused'
-  | 'error';
+export type ProducerStatus = 'idle' | 'initializing' | 'running' | 'paused' | 'error';
 
 export type ProducerWorkerCommand =
   | {

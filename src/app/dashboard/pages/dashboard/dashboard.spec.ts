@@ -7,10 +7,7 @@ import { Dashboard } from './dashboard';
 
 describe('Dashboard', () => {
   const metrics = signal<readonly InstrumentMetrics[]>([]);
-  const status = signal<
-    'idle' | 'initializing' | 'running' |
-    'paused' | 'error'
-  >('running');
+  const status = signal<'idle' | 'initializing' | 'running' | 'paused' | 'error'>('running');
 
   const error = signal<string | null>(null);
 
@@ -58,13 +55,11 @@ describe('Dashboard', () => {
       },
     ]);
 
-    const fixture =
-      TestBed.createComponent(Dashboard);
+    const fixture = TestBed.createComponent(Dashboard);
 
     fixture.detectChanges();
 
-    const text =
-      fixture.nativeElement.textContent as string;
+    const text = fixture.nativeElement.textContent as string;
 
     expect(text).toContain('ALFA');
     expect(text).toContain('$102.00');
@@ -86,14 +81,11 @@ describe('Dashboard', () => {
       },
     ]);
 
-    const fixture =
-      TestBed.createComponent(Dashboard);
+    const fixture = TestBed.createComponent(Dashboard);
 
     fixture.detectChanges();
 
-    const row = fixture.nativeElement.querySelector(
-      'tbody tr',
-    ) as HTMLElement;
+    const row = fixture.nativeElement.querySelector('tbody tr') as HTMLElement;
 
     expect(row.textContent).toContain('ALFA');
     expect(row.textContent).toContain('0');
@@ -101,35 +93,25 @@ describe('Dashboard', () => {
   });
 
   it('toggles pause through the producer service', () => {
-    const fixture =
-      TestBed.createComponent(Dashboard);
+    const fixture = TestBed.createComponent(Dashboard);
 
     fixture.detectChanges();
 
-    const button =
-      fixture.nativeElement.querySelector(
-        '.control-button',
-      ) as HTMLButtonElement;
+    const button = fixture.nativeElement.querySelector('.control-button') as HTMLButtonElement;
 
     button.click();
 
-    expect(
-      producer.togglePause,
-    ).toHaveBeenCalledOnce();
+    expect(producer.togglePause).toHaveBeenCalledOnce();
   });
 
   it('shows Resume while paused', () => {
     status.set('paused');
 
-    const fixture =
-      TestBed.createComponent(Dashboard);
+    const fixture = TestBed.createComponent(Dashboard);
 
     fixture.detectChanges();
 
-    const button =
-      fixture.nativeElement.querySelector(
-        '.control-button',
-      ) as HTMLButtonElement;
+    const button = fixture.nativeElement.querySelector('.control-button') as HTMLButtonElement;
 
     expect(button.textContent).toContain('Resume');
     expect(button.disabled).toBe(false);
@@ -139,18 +121,12 @@ describe('Dashboard', () => {
     status.set('error');
     error.set('Unable to load Wasm');
 
-    const fixture =
-      TestBed.createComponent(Dashboard);
+    const fixture = TestBed.createComponent(Dashboard);
 
     fixture.detectChanges();
 
-    const alert =
-      fixture.nativeElement.querySelector(
-        '[role="alert"]',
-      ) as HTMLElement;
+    const alert = fixture.nativeElement.querySelector('[role="alert"]') as HTMLElement;
 
-    expect(alert.textContent).toContain(
-      'Unable to load Wasm',
-    );
+    expect(alert.textContent).toContain('Unable to load Wasm');
   });
 });

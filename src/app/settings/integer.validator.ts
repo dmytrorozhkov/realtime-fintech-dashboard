@@ -1,8 +1,4 @@
-import {
-  AbstractControl,
-  ValidationErrors,
-  ValidatorFn,
-} from '@angular/forms';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 export const integerValidator: ValidatorFn = (
   control: AbstractControl,
@@ -14,8 +10,7 @@ export const integerValidator: ValidatorFn = (
     return null;
   }
 
-  return typeof value === 'number' &&
-    Number.isInteger(value)
+  return typeof value === 'number' && Number.isInteger(value)
     ? null
     : {
         integer: true,

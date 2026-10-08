@@ -1,15 +1,10 @@
-import {
-  CentsCurrencyPipe,
-  ImbalancePipe,
-} from './market-value.pipes';
+import { CentsCurrencyPipe, ImbalancePipe } from './market-value.pipes';
 
 describe('CentsCurrencyPipe', () => {
   const pipe = new CentsCurrencyPipe();
 
   it('formats cents as US dollars', () => {
-    expect(pipe.transform(10_150)).toBe(
-      '$101.50',
-    );
+    expect(pipe.transform(10_150)).toBe('$101.50');
   });
 
   it('returns unavailable marker for null', () => {

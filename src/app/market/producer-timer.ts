@@ -1,30 +1,20 @@
 export interface ProducerTimerDriver {
-  set(
-    callback: () => void,
-    delayMs: number,
-  ): number;
+  set(callback: () => void, delayMs: number): number;
 
   clear(timerId: number): void;
 }
 
 const workerTimerDriver: ProducerTimerDriver = {
-  set: (callback, delayMs) =>
-    setTimeout(callback, delayMs),
+  set: (callback, delayMs) => setTimeout(callback, delayMs),
   clear: (timerId) => clearTimeout(timerId),
 };
 
 export class ProducerTimer {
   private timerId: number | null = null;
 
-  constructor(
-    private readonly driver: ProducerTimerDriver =
-      workerTimerDriver,
-  ) {}
+  constructor(private readonly driver: ProducerTimerDriver = workerTimerDriver) {}
 
-  schedule(
-    callback: () => void,
-    delayMs: number,
-  ): void {
+  schedule(callback: () => void, delayMs: number): void {
     this.cancel();
 
     this.timerId = this.driver.set(() => {

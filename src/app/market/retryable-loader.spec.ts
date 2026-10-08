@@ -21,9 +21,7 @@ describe('RetryableLoader', () => {
 
     const loader = new RetryableLoader(load);
 
-    await expect(loader.get()).rejects.toThrow(
-      'Network error',
-    );
+    await expect(loader.get()).rejects.toThrow('Network error');
     await expect(loader.get()).resolves.toBe('module');
     expect(load).toHaveBeenCalledTimes(2);
   });

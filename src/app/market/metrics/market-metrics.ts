@@ -1,7 +1,4 @@
-import {
-  InstrumentMetrics,
-  MarketUpdate,
-} from '../models/market.models';
+import { InstrumentMetrics, MarketUpdate } from '../models/market.models';
 
 interface InstrumentAccumulator {
   readonly instrument: string;
@@ -31,9 +28,7 @@ function createAccumulator(instrument: string): InstrumentAccumulator {
   };
 }
 
-function calculateMetrics(
-  accumulator: InstrumentAccumulator,
-): InstrumentMetrics {
+function calculateMetrics(accumulator: InstrumentAccumulator): InstrumentMetrics {
   const {
     instrument,
     lastPriceCents,
@@ -46,14 +41,9 @@ function calculateMetrics(
   } = accumulator;
 
   const spreadCents =
-    latestBidCents === null || latestAskCents === null
-      ? null
-      : latestAskCents - latestBidCents;
+    latestBidCents === null || latestAskCents === null ? null : latestAskCents - latestBidCents;
 
-  const vwapCents =
-    cumulativeVolume === 0
-      ? null
-      : cumulativePriceQuantity / cumulativeVolume;
+  const vwapCents = cumulativeVolume === 0 ? null : cumulativePriceQuantity / cumulativeVolume;
 
   const bookQuantity =
     latestBidQuantity === null || latestAskQuantity === null
@@ -81,8 +71,7 @@ function calculateMetrics(
  * The complete MarketUpdate history is intentionally not retained.
  */
 export class MarketMetricsAggregator {
-  private readonly accumulators =
-    new Map<string, InstrumentAccumulator>();
+  private readonly accumulators = new Map<string, InstrumentAccumulator>();
 
   constructor(instruments: readonly string[]) {
     this.reset(instruments);
@@ -95,9 +84,7 @@ export class MarketMetricsAggregator {
     const accumulator = this.accumulators.get(update.instrument);
 
     if (!accumulator) {
-      throw new Error(
-        `Received update for unknown instrument: ${update.instrument}`,
-      );
+      throw new Error(`Received update for unknown instrument: ${update.instrument}`);
     }
 
     accumulator.lastPriceCents = update.priceCents;
@@ -107,8 +94,7 @@ export class MarketMetricsAggregator {
     accumulator.latestAskQuantity = update.askQuantity;
 
     accumulator.cumulativeVolume += update.tradeQuantity;
-    accumulator.cumulativePriceQuantity +=
-      update.priceCents * update.tradeQuantity;
+    accumulator.cumulativePriceQuantity += update.priceCents * update.tradeQuantity;
   }
 
   /**
@@ -124,10 +110,7 @@ export class MarketMetricsAggregator {
    * Returns the current metrics for every instrument.
    */
   getSnapshot(): InstrumentMetrics[] {
-    return Array.from(
-      this.accumulators.values(),
-      calculateMetrics,
-    );
+    return Array.from(this.accumulators.values(), calculateMetrics);
   }
 
   /**
@@ -141,10 +124,7 @@ export class MarketMetricsAggregator {
         throw new Error(`Duplicate instrument: ${instrument}`);
       }
 
-      this.accumulators.set(
-        instrument,
-        createAccumulator(instrument),
-      );
+      this.accumulators.set(instrument, createAccumulator(instrument));
     }
   }
 }
